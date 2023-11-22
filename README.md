@@ -189,7 +189,7 @@ message = "Hello, Server!"
 send_message(server_ip, server_port, message)
 ```
 
-## TSL Communication
+## TLS Communication
 
 ```bash
 pip install cryptography
