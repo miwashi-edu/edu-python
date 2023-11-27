@@ -189,6 +189,60 @@ message = "Hello, Server!"
 send_message(server_ip, server_port, message)
 ```
 
+## UDP Lyssnare
+
+```python
+import socket
+
+def start_udp_server(ip, port):
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    server_socket.bind((ip, port))
+    print(f"UDP Server listening on {ip}:{port}")
+
+    while True:
+        data, client_address = server_socket.recvfrom(1024)
+        if not data:
+            break
+        print(f"Received: {data.decode()} from {client_address}")
+        server_socket.sendto(data, client_address)
+
+    server_socket.close()
+
+# Run the server
+server_ip = '192.168.0.3'
+server_port = 12345
+start_udp_server(server_ip, server_port)
+```
+
+## UDP Sändare
+
+```python
+import socket
+
+def send_udp_data(ip, port, message):
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+    try:
+        # Send data
+        client_socket.sendto(message.encode(), (ip, port))
+        print(f"Sent: {message} to {ip}:{port}")
+
+        # Receive response
+        data, server = client_socket.recvfrom(1024)
+        print(f"Received: {data.decode()} from {server}")
+
+    finally:
+        client_socket.close()
+
+# Example usage
+server_ip = '192.168.0.3'
+server_port = 12345
+message = "Hello, UDP Server!"
+send_udp_data(server_ip, server_port, message)
+
+```
+
+
 ## TLS Communication
 
 ```bash
