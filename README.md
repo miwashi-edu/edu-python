@@ -341,34 +341,51 @@ for combo in itertools.product(chars, repeat=len(password)):
         break
 ```
 
+## Document vulnerabilityies automatically
+
 ```
-from scapy.all import ARP, Ether, srp
+import socket
 import sys
+from docx import Document
 
-def arp_scan(ip_range):
-    """
-    Performs an ARP scan on the specified IP range.
+def scan_ports(host, port_range):
+    open_ports = []
+    for port in range(*port_range):
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.settimeout(1)
+                if not s.connect_ex((host, port)):
+                    open_ports.append(port)
+        except socket.error:
+            pass
+    return open_ports
 
-    :param ip_range: String, the IP range to scan, e.g., "192.168.1.1/24".
-    :return: None
-    """
-    # Create an Ether and ARP packet
-    arp_request = Ether(dst="ff:ff:ff:ff:ff:ff") / ARP(pdst=ip_range)
-    
-    # Send the packet and capture the response
-    answered, _ = srp(arp_request, timeout=2, verbose=False)
+def write_report(host, open_ports, filename):
+    doc = Document()
+    doc.add_heading(f'Port Scan Report for {host}', 0)
 
-    # Process the response
-    for sent, received in answered:
-        print(received.psrc)  # Print the discovered IP addresses
+    if open_ports:
+        doc.add_paragraph('The following ports are open:')
+        for port in open_ports:
+            doc.add_paragraph(f'Port {port}')
+    else:
+        doc.add_paragraph('No open ports found.')
 
-# Take the IP range from command line arguments
+    doc.save(filename)
+
+def process_host(host):
+    target_port_range = (20, 1025)
+    open_ports = scan_ports(host, target_port_range)
+    report_filename = f'port_scan_report_{host}.docx'
+    write_report(host, open_ports, report_filename)
+
+# Check if any arguments are provided (for single IP) or read from stdin (for piped list)
 if len(sys.argv) > 1:
-    target_ip_range = sys.argv[1]
+    process_host(sys.argv[1])
 else:
-    print("Usage: python arp_scan.py <IP range>")
-    sys.exit(1)
-
-arp_scan(target_ip_range)
+    for line in sys.stdin:
+        host = line.strip()
+        if host:
+            process_host(host)
 ```
 
