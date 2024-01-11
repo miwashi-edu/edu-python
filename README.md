@@ -341,4 +341,34 @@ for combo in itertools.product(chars, repeat=len(password)):
         break
 ```
 
+```
+from scapy.all import ARP, Ether, srp
+import sys
+
+def arp_scan(ip_range):
+    """
+    Performs an ARP scan on the specified IP range.
+
+    :param ip_range: String, the IP range to scan, e.g., "192.168.1.1/24".
+    :return: None
+    """
+    # Create an Ether and ARP packet
+    arp_request = Ether(dst="ff:ff:ff:ff:ff:ff") / ARP(pdst=ip_range)
+    
+    # Send the packet and capture the response
+    answered, _ = srp(arp_request, timeout=2, verbose=False)
+
+    # Process the response
+    for sent, received in answered:
+        print(received.psrc)  # Print the discovered IP addresses
+
+# Take the IP range from command line arguments
+if len(sys.argv) > 1:
+    target_ip_range = sys.argv[1]
+else:
+    print("Usage: python arp_scan.py <IP range>")
+    sys.exit(1)
+
+arp_scan(target_ip_range)
+```
 
